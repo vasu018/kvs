@@ -35,7 +35,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
 ifeq ($(RTE_SDK),)
 $(error "Please define RTE_SDK environment variable")
 endif
@@ -45,11 +44,23 @@ RTE_TARGET ?= x86_64-native-linuxapp-gcc
 
 include $(RTE_SDK)/mk/rte.vars.mk
 
-#DIRS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += lib
-#DIRS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += kvs_lib
-DIRS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += kvs_server
-DIRS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += kvs_client_get
-DIRS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += kvs_client_set
-DIRS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += kvs_client_del
+ifneq ($(CONFIG_RTE_EXEC_ENV),"linuxapp")
+$(error This application can only operate in a linuxapp environment, \
+please change the definition of the RTE_TARGET environment variable)
+endif
 
-include $(RTE_SDK)/mk/rte.extsubdir.mk
+# binary name
+APP = kvs_del
+
+# all source are stored in SRCS-y
+SRCS-y := main.c $(SRCDIR)/../kvs_lib/kvs_main.c
+
+#INC := onvm_mgr.h onvm_init.h onvm_args.h onvm_stats.h onvm_nf.h onvm_pkt.h
+
+CFLAGS += $(WERROR_FLAGS) -O3 $(USER_FLAGS) -g
+CFLAGS += -I$(SRCDIR)/../ -I$(SRCDIR)/../kvs_lib/ -I$(SRCDIR)/../lib/
+#LDFLAGS += $(SRCDIR)/../lib/lib/$(RTE_TARGET)/libonvmhelper.a
+#LDFLAGS += $(SRCDIR)/../onvm_nflib/onvm_nflib/$(RTE_TARGET)/libonvm.a
+
+
+include $(RTE_SDK)/mk/rte.extapp.mk

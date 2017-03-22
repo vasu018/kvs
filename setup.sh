@@ -65,6 +65,6 @@ set_non_numa_pages()
 
 	create_mnt_huge
 }
-
+sudo sh -c "echo 0 > /proc/sys/kernel/randomize_va_space"
 load_igb_uio_module
 set_non_numa_pages

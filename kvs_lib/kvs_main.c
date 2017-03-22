@@ -73,12 +73,27 @@ int get(int key) {
 	struct rte_hash *h = NULL;
 	void *data = NULL;
 	int retval;
+	int32_t iter = 0;
+	void * pkey =NULL;
+	void * pdata= NULL;
 	h = rte_hash_find_existing(HASH_NAME);
     if(h == NULL ) {
     	printf("ERROR key:%d h:%p\n", key, h);
         return -1;
     }
-    if((retval = rte_hash_lookup_data(h,(void *)&key,(void *)&data ))){
+    while (rte_hash_iterate(h,(void *)&pkey,(void *)&pdata,(uint32_t *)&iter) != -ENOENT){
+    	if(key){
+    		printf("%d key %p %d\n", iter, pkey, *((int *)(pkey)));
+    	}
+    	if(data){
+    		printf("%d data %p %d\n", iter, pdata,*((int *)(pdata)));
+    	}
+
+    }
+    rte_hash_set_cmp_func(h,kvs_key_cmp);
+    //h->hash_func = (rte_hash_function)rte_myhash;
+    rte_hash_update_hash_fun(h,rte_myhash);
+    if((retval = rte_hash_lookup_data(h,(void *)&key,(void *)&data ))<0){
     	printf("ERROR found no key:%d retval:%d\n", key, retval);
     	return -1;
     }
@@ -92,15 +107,17 @@ int get(int key) {
 int set(int key, int value) {
 	struct rte_hash *h = NULL;
 	h = rte_hash_find_existing(HASH_NAME);
-	int* p_key = NULL;
-	p_key = (int *)rte_zmalloc(NULL, sizeof(int), 0);
-	*p_key = value;
+	int* p_value = NULL;
+
     if((h == NULL )){
     	printf("ERROR key:%d h:%p\n", key, h);
         return -1;
     }
-
-    return rte_hash_add_key_data(h,(void *)&key,(void *)p_key);
+    rte_hash_update_hash_fun(h,rte_myhash);
+    p_value = (int *)rte_zmalloc("KVS", sizeof(int), 0);
+	*p_value = value;
+    rte_hash_set_cmp_func(h,kvs_key_cmp);
+    return rte_hash_add_key_data(h,(void *)&key,(void *)p_value);
 
 }
 
@@ -112,6 +129,8 @@ int del(int key) {
     	printf("ERROR key:%d h:%p\n", key, h);
         return -1;
     }
+    rte_hash_update_hash_fun(h,rte_myhash);
+    rte_hash_set_cmp_func(h,kvs_key_cmp);
     rte_hash_del_key (h, (const void *)&key);
 
     return 0;

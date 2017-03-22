@@ -32,61 +32,23 @@
  */
 
 #include "main.h"
-#include <signal.h>
-#include <unistd.h>
-int flag = 1;
-
-void sig_handler(int signo)
-{
-  if (signo == SIGINT) {
-    printf("received SIGINT\n");
-    flag = 0;
-  }
-}
 
 int
 main(int argc, char **argv)
 {
-	int ret;
-	char name[RTE_HASH_NAMESIZE] = {HASH_NAME};
-	struct rte_hash *h = NULL;
-	//int32_t iter = 0;
-	//void * key =NULL;
-	//void * data= NULL;
-
+	int key = 0,ret;
 	ret = rte_eal_init(argc, argv);
 	if (ret < 0)
 		rte_panic("Cannot init EAL\n");
-
-    struct rte_hash_parameters hash_params = {
-            .entries = HASH_MAX_NUM_ENTRY, /* table load = 50% */
-            .key_len = 32, /*sizeof(uint32_t),*/ /* Store IPv4 dest IP address */
-            .socket_id = rte_socket_id(),
-            .hash_func_init_val = 0,
-			.name = name,
-			.extra_flag = 0,
-			.hash_func = rte_myhash,
-    };
-
-    h = rte_hash_create(&hash_params);
-
-    if( h == NULL) {
-    	printf("Unable to create hashmap\n");
-    	goto cleanup;
-    }
-    rte_hash_set_cmp_func(h,kvs_key_cmp);
-
-    if (signal(SIGINT, sig_handler) == SIG_ERR) {
-    	printf("\ncan't catch SIGINT\n");
-    	goto cleanup;
-    }
-    while(flag) {
-
-    	sleep(1);
-
-    }
-    cleanup:
-	rte_hash_free (h);
-	rte_eal_mp_wait_lcore();
+	argc -= ret;
+	argv += ret;
+	printf("argc:%d \n",argc);
+	if(argc != 2) {
+		printf("usage is del <key> \n");
+		return 0;
+	}
+	key = atoi(argv[1]);
+    printf("del(%d) returned %d\n",key,del(key));
 	return 0;
 }
+

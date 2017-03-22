@@ -16,4 +16,3 @@
 #include <rte_malloc.h>
 
 #include "kvs_main.h"
-void sig_handler(int signo);
