@@ -44,38 +44,24 @@ void sig_handler(int signo)
   }
 }
 
+
+
+
+
 int
 main(int argc, char **argv)
 {
 	int ret;
 	char name[RTE_HASH_NAMESIZE] = {HASH_NAME};
-	struct rte_hash *h = NULL;
-	//int32_t iter = 0;
-	//void * key =NULL;
-	//void * data= NULL;
 
 	ret = rte_eal_init(argc, argv);
 	if (ret < 0)
 		rte_panic("Cannot init EAL\n");
 
-    struct rte_hash_parameters hash_params = {
-            .entries = HASH_MAX_NUM_ENTRY, /* table load = 50% */
-            .key_len = 32, /*sizeof(uint32_t),*/ /* Store IPv4 dest IP address */
-            .socket_id = rte_socket_id(),
-            .hash_func_init_val = 0,
-			.name = name,
-			.extra_flag = 0,
-			.hash_func = rte_myhash,
-    };
-
-    h = rte_hash_create(&hash_params);
-
-    if( h == NULL) {
-    	printf("Unable to create hashmap\n");
-    	goto cleanup;
-    }
-    rte_hash_set_cmp_func(h,kvs_key_cmp);
-
+	if(kvs_hash_init(name)){
+		printf("unable to create hash\n");
+		goto cleanup;
+	}
     if (signal(SIGINT, sig_handler) == SIG_ERR) {
     	printf("\ncan't catch SIGINT\n");
     	goto cleanup;
@@ -86,7 +72,7 @@ main(int argc, char **argv)
 
     }
     cleanup:
-	rte_hash_free (h);
+	kvs_hash_delete(name);
 	rte_eal_mp_wait_lcore();
 	return 0;
 }

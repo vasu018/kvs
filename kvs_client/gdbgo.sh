@@ -1,1 +1,1 @@
-sudo -E gdb --args ./build/kvs_server --proc-type=primary  --file-prefix kvs
+sudo -E gdb --args ./build/kvs_client --proc-type=secondary  --file-prefix kvs

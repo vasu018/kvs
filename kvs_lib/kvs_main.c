@@ -54,6 +54,48 @@
 #define HASH_MAX_NUM_ENTRY 8
 
 
+int kvs_hash_init( char* name )
+{
+	//char name[RTE_HASH_NAMESIZE] = {0};
+	struct rte_hash *h = NULL;
+    struct rte_hash_parameters hash_params = {
+            .entries = HASH_MAX_NUM_ENTRY, /* table load = 50% */
+            .key_len = 32, /*sizeof(uint32_t),*/ /* Store IPv4 dest IP address */
+            .socket_id = rte_socket_id(),
+            .hash_func_init_val = 0,
+			.name = name,
+			.extra_flag = 0,
+			.hash_func = rte_myhash,
+    };
+
+    h = rte_hash_create(&hash_params);
+
+    if( h == NULL) {
+    	printf("Unable to create hashmap\n");
+    	return -1;
+    }
+    rte_hash_set_cmp_func(h,kvs_key_cmp);
+    return 0;
+
+}
+
+int kvs_hash_delete(char * name)
+{
+	struct rte_hash *h = NULL;
+	h = rte_hash_find_existing(HASH_NAME);
+	if(name == NULL) {
+    	printf("No name specified\n");
+        return -1;
+	}
+    if(h == NULL ) {
+    	printf("Unable to find hash function %s\n", name);
+        return 0;
+    }
+	rte_hash_free (h);
+	return 0;
+}
+
+
 
 int kvs_key_cmp (const void *key1, const void *key2, size_t key_len) {
 
