@@ -2,8 +2,8 @@
 .*
 *.o
 dpdk/
+kvs_lib/kvs_lib/
 kvs_server/build/
-kvs_server/kvs_server
-kvs_client_get/build/
-kvs_client_set/build/
-kvs_client_del/build/
+kvs_server/kvs_server/
+kvs_client/build/
+kvs_client/kvs_client/

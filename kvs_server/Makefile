@@ -53,14 +53,12 @@ endif
 APP = kvs_server
 
 # all source are stored in SRCS-y
-SRCS-y := main.c $(SRCDIR)/../kvs_lib/kvs_main.c
-
-#INC := onvm_mgr.h onvm_init.h onvm_args.h onvm_stats.h onvm_nf.h onvm_pkt.h
+SRCS-y := main.c
 
 CFLAGS += $(WERROR_FLAGS) -O3 $(USER_FLAGS) -g
 CFLAGS += -I$(SRCDIR)/../ -I$(SRCDIR)/../kvs_lib/ -I$(SRCDIR)/../lib/
 #LDFLAGS += $(SRCDIR)/../lib/lib/$(RTE_TARGET)/libonvmhelper.a
-#LDFLAGS += $(SRCDIR)/../onvm_nflib/onvm_nflib/$(RTE_TARGET)/libonvm.a
+LDFLAGS += $(SRCDIR)/../kvs_lib/kvs_lib/$(RTE_TARGET)/libkvs.a
 
 
 include $(RTE_SDK)/mk/rte.extapp.mk

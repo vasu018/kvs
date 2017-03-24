@@ -7,6 +7,7 @@
 #          2015-2016 George Washington University
 #          2015-2016 University of California Riverside
 #          2010-2014 Intel Corporation.
+#          2016 Hewlett Packard Enterprise Development LP
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -40,27 +41,17 @@ $(error "Please define RTE_SDK environment variable")
 endif
 
 # Default target, can be overriden by command line or environment
-RTE_TARGET ?= x86_64-native-linuxapp-gcc
-
 include $(RTE_SDK)/mk/rte.vars.mk
 
-ifneq ($(CONFIG_RTE_EXEC_ENV),"linuxapp")
-$(error This application can only operate in a linuxapp environment, \
-please change the definition of the RTE_TARGET environment variable)
-endif
+RTE_TARGET ?= x86_64-native-linuxapp-gcc
 
 # binary name
-APP = kvs_get
+LIB    = libkvs.a
 
 # all source are stored in SRCS-y
-SRCS-y := main.c $(SRCDIR)/../kvs_lib/kvs_main.c
+SRCS-y := kvs_main.c
 
-#INC := onvm_mgr.h onvm_init.h onvm_args.h onvm_stats.h onvm_nf.h onvm_pkt.h
+CFLAGS += $(WERROR_FLAGS) -O3 $(USER_FLAGS)
 
-CFLAGS += $(WERROR_FLAGS) -O3 $(USER_FLAGS) -g
-CFLAGS += -I$(SRCDIR)/../ -I$(SRCDIR)/../kvs_lib/ -I$(SRCDIR)/../lib/
-#LDFLAGS += $(SRCDIR)/../lib/lib/$(RTE_TARGET)/libonvmhelper.a
-#LDFLAGS += $(SRCDIR)/../onvm_nflib/onvm_nflib/$(RTE_TARGET)/libonvm.a
+include $(RTE_SDK)/mk/rte.extlib.mk
 
-
-include $(RTE_SDK)/mk/rte.extapp.mk

@@ -1,1 +1,0 @@
-sudo -E ./build/kvs_set --proc-type=secondary --file-prefix kvs $1 $2
