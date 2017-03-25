@@ -92,11 +92,26 @@ main(int argc, char **argv)
     if (signal(SIGINT, sig_handler) == SIG_ERR) {
     	printf("\ncan't catch SIGINT\n");
     	return 0;
-    }
+    }/*
     while(flag) {
         menu();
     	//sleep(1);
 
+    }*/
+    for(int i =1 ;i<=1000;i++){
+
+    	if(set(i,i+1)) {
+    		printf("set failed %d\n",i);
+    		break;
+    	}
     }
+    for(int i =1 ;i<=1000;i++){
+
+    	if(get(i) !=(i+1)) {
+    		printf("get failed %d\n",i);
+    		break;
+    	}
+    }
+    printf("all done\n");
 	return 0;
 }

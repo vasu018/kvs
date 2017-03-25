@@ -50,8 +50,6 @@
 
 #include "kvs_main.h"
 
-#define HASH_NAME "kvs_tbl"
-#define HASH_MAX_NUM_ENTRY 8
 
 
 int kvs_hash_init( char* name )
@@ -103,9 +101,9 @@ int kvs_key_cmp (const void *key1, const void *key2, size_t key_len) {
 		printf("something is wrong\n");
 		return 1;
 	}
-	printf("key1 = %d  key2 = %d\n",*((const int *)(key1)), *((const int *)(key2)));
+	//printf("key1 = %d  key2 = %d\n",*((const int *)(key1)), *((const int *)(key2)));
 	if ( *((const int *)(key1)) ==  *((const int *)(key2))){
-		printf("found key\n");
+		//printf("found key\n");
 		return 0;
 	}
 	return 1;
@@ -115,14 +113,16 @@ int get(int key) {
 	struct rte_hash *h = NULL;
 	void *data = NULL;
 	int retval;
+	/*
 	int32_t iter = 0;
 	void * pkey =NULL;
-	void * pdata= NULL;
+	void * pdata= NULL;*/
 	h = rte_hash_find_existing(HASH_NAME);
     if(h == NULL ) {
     	printf("ERROR key:%d h:%p\n", key, h);
         return -1;
     }
+    /*
     while (rte_hash_iterate(h,(void *)&pkey,(void *)&pdata,(uint32_t *)&iter) != -ENOENT){
     	if(key){
     		printf("%d key %p %d\n", iter, pkey, *((int *)(pkey)));
@@ -131,7 +131,7 @@ int get(int key) {
     		printf("%d data %p %d\n", iter, pdata,*((int *)(pdata)));
     	}
 
-    }
+    }*/
     rte_hash_set_cmp_func(h,kvs_key_cmp);
     //h->hash_func = (rte_hash_function)rte_myhash;
     rte_hash_update_hash_fun(h,rte_myhash);

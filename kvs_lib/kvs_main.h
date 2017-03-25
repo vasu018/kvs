@@ -2,7 +2,7 @@
 #define __KVS_MAIN__
 
 #define HASH_NAME "kvs_tbl"
-#define HASH_MAX_NUM_ENTRY 8
+#define HASH_MAX_NUM_ENTRY 1048576
 
 uint32_t rte_myhash(const void *key, uint32_t length, uint32_t initval);
 

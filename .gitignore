@@ -2,6 +2,7 @@
 .*
 *.o
 dpdk/
+kvs_lib/build/
 kvs_lib/kvs_lib/
 kvs_server/build/
 kvs_server/kvs_server/
