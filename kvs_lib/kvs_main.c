@@ -122,16 +122,7 @@ int get(int key) {
     	printf("ERROR key:%d h:%p\n", key, h);
         return -1;
     }
-    /*
-    while (rte_hash_iterate(h,(void *)&pkey,(void *)&pdata,(uint32_t *)&iter) != -ENOENT){
-    	if(key){
-    		printf("%d key %p %d\n", iter, pkey, *((int *)(pkey)));
-    	}
-    	if(data){
-    		printf("%d data %p %d\n", iter, pdata,*((int *)(pdata)));
-    	}
 
-    }*/
     rte_hash_set_cmp_func(h,kvs_key_cmp);
     //h->hash_func = (rte_hash_function)rte_myhash;
     rte_hash_update_hash_fun(h,rte_myhash);
@@ -139,7 +130,7 @@ int get(int key) {
     	printf("ERROR found no key:%d retval:%d\n", key, retval);
     	return -1;
     }
-    printf("value stored at %p is %d\n",data,*((int *)(data)));
+    //printf("value stored at %p is %d\n",data,*((int *)(data)));
     retval = *((int *)(data));
     return retval;
 

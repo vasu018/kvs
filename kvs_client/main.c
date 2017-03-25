@@ -98,14 +98,14 @@ main(int argc, char **argv)
     	//sleep(1);
 
     }*/
-    for(int i =1 ;i<=1000;i++){
+    for(int i =1 ;i<=1000000;i++){
 
     	if(set(i,i+1)) {
     		printf("set failed %d\n",i);
     		break;
     	}
     }
-    for(int i =1 ;i<=1000;i++){
+    for(int i =1 ;i<=1000000;i++){
 
     	if(get(i) !=(i+1)) {
     		printf("get failed %d\n",i);
