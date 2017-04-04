@@ -47,26 +47,26 @@ void sig_handler(int signo)
 
 void menu( void )
 {
-    int opt = 0,key,value;
+    int opt = 0,key,value;char name[] = {HASH_NAME};
     printf("\nEnter a value\n1. get(key) \n2. set(key,value) \n3. del(key) \n4.exit\n:");
     scanf("%d",&opt);
     switch(opt) {
     case 1:{
             printf("\nEnter key\nGET:");
             scanf("%d",&key);
-            printf("result:%d\n",get(key));
+            printf("result:%p\n",get(name,key));
             break;
             }
     case 2:{
             printf("\nEnter key and value\nSET:");
             scanf("%d %d",&key,&value);
-            printf("result:%d\n",set(key,value));
+            printf("result:%d\n",set(name,key,(void *)&value));
             break;
             }
     case 3:{
             printf("\nEnter key\nDEL:");
             scanf("%d",&key);
-            printf("result:%d\n",del(key));
+            printf("result:%d\n",del(name,key));
             break;
             }
  
@@ -79,10 +79,10 @@ void menu( void )
 int
 main(int argc, char **argv)
 {
-	int ret;
+	int ret;char name[] = {HASH_NAME};
 	//int32_t iter = 0;
 	//void * key =NULL;
-	//void * data= NULL;
+	void * data= NULL;
 
 	ret = rte_eal_init(argc, argv);
 	if (ret < 0)
@@ -98,20 +98,26 @@ main(int argc, char **argv)
     	//sleep(1);
 
     }*/
-    for(int i =1 ;i<=1000000;i++){
 
-    	if(set(i,i+1)) {
+
+    for(int i =1 ;i<=1000000;i++){
+    	data = ( int *)rte_zmalloc("S", sizeof(int), 0);
+    	*(int *)data = i+1;
+    	if(set(name,i,(void *)data)) {
     		printf("set failed %d\n",i);
     		break;
     	}
     }
     for(int i =1 ;i<=1000000;i++){
 
-    	if(get(i) !=(i+1)) {
+    	if((*(int *)get(name,i)) !=(i+1)) {
     		printf("get failed %d\n",i);
     		break;
     	}
+    	rte_free(get(name,i));
     }
+
+
     printf("all done\n");
 	return 0;
 }
