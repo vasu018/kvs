@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <errno.h>
 #include <sys/queue.h>
+#include <stdbool.h>
 
 #include <rte_memory.h>
 #include <rte_memzone.h>
@@ -15,6 +16,8 @@
 #include <rte_jhash.h>
 #include <rte_malloc.h>
 
+#include "bstrlib.h"
+#include "hashtable.h"
 #include "kvs_main.h"
 void sig_handler(int signo);
 

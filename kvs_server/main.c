@@ -44,14 +44,18 @@ void sig_handler(int signo)
   }
 }
 
+typedef struct states{
+	hash_table_t *tt;
 
+}states_t;
 
 
 
 int
 main(int argc, char **argv)
 {
-	int ret;
+	int ret;hash_table_t *tt = NULL;int * data = NULL;
+	states_t *pstate =NULL;
 	char name[RTE_HASH_NAMESIZE] = {HASH_NAME};
 
 	ret = rte_eal_init(argc, argv);
@@ -66,11 +70,22 @@ main(int argc, char **argv)
     	printf("\ncan't catch SIGINT\n");
     	goto cleanup;
     }
+    pstate = (states_t *) rte_malloc(NULL,sizeof(states_t),0);
+
+    tt = hashtable_create(100,NULL,free_wrapper,NULL);
+    data = (int *) rte_malloc(NULL,sizeof(int),0);
+    *data = 19;
+    hashtable_insert(tt,(const hash_key_t)5,(void *)data);
+    pstate->tt = tt;
+    set(name,23,(void *)pstate);
     while(flag) {
 
     	sleep(1);
 
     }
+    hashtable_get(tt,5,(void **)(&data));
+    printf("data fetched %d\n",*(int *)data);
+    hashtable_free(tt,5);
     cleanup:
 	kvs_hash_delete(name);
 	rte_eal_mp_wait_lcore();

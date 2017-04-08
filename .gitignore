@@ -2,6 +2,10 @@
 .*
 *.o
 dpdk/
+hashtable/build/
+hashtable/hashtable/
+bstr/build/
+bstr/bstr/
 kvs_lib/build/
 kvs_lib/kvs_lib/
 kvs_server/build/

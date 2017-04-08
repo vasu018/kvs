@@ -7,6 +7,7 @@
 #          2015-2016 George Washington University
 #          2015-2016 University of California Riverside
 #          2010-2014 Intel Corporation.
+#          2016 Hewlett Packard Enterprise Development LP
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -40,29 +41,17 @@ $(error "Please define RTE_SDK environment variable")
 endif
 
 # Default target, can be overriden by command line or environment
-RTE_TARGET ?= x86_64-native-linuxapp-gcc
-
 include $(RTE_SDK)/mk/rte.vars.mk
 
-ifneq ($(CONFIG_RTE_EXEC_ENV),"linuxapp")
-$(error This application can only operate in a linuxapp environment, \
-please change the definition of the RTE_TARGET environment variable)
-endif
+RTE_TARGET ?= x86_64-native-linuxapp-gcc
 
 # binary name
-APP = kvs_server
+LIB    = libbstr.a
 
 # all source are stored in SRCS-y
-SRCS-y := main.c
+SRCS-y :=  bstest.c  buniutil.c  bstraux.c  bstrlib.c  testaux.c utf8util.c
 
-CFLAGS += $(WERROR_FLAGS) -O3 $(USER_FLAGS) -g
-CFLAGS += -I$(SRCDIR)/../ -I$(SRCDIR)/../kvs_lib/ -I$(SRCDIR)/../lib/ -I$(SRCDIR)/../bstr/ -I$(SRCDIR)/../hashtable/
-#LDFLAGS += $(SRCDIR)/../lib/lib/$(RTE_TARGET)/libonvmhelper.a
-LDFLAGS += $(SRCDIR)/../kvs_lib/kvs_lib/$(RTE_TARGET)/libkvs.a
-LDFLAGS += $(SRCDIR)/../hashtable/hashtable/$(RTE_TARGET)/libhashtab.a
-LDFLAGS += $(SRCDIR)/../bstr/bstr/$(RTE_TARGET)/libbstr.a
+CFLAGS += -O3 $(USER_FLAGS)
 
+include $(RTE_SDK)/mk/rte.extlib.mk
 
-
-
-include $(RTE_SDK)/mk/rte.extapp.mk

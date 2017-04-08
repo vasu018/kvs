@@ -45,6 +45,11 @@ void sig_handler(int signo)
 }
 
 
+typedef struct states{
+	hash_table_t *tt;
+
+}states_t;
+/*
 void menu( void )
 {
     int opt = 0,key,value;char name[] = {HASH_NAME};
@@ -74,15 +79,15 @@ void menu( void )
     }
 }
 
-
+*/
 
 int
 main(int argc, char **argv)
 {
-	int ret;char name[] = {HASH_NAME};
+	int ret;char name[] = {HASH_NAME};states_t *pstate =NULL;int * data = NULL;
 	//int32_t iter = 0;
 	//void * key =NULL;
-	void * data= NULL;
+
 
 	ret = rte_eal_init(argc, argv);
 	if (ret < 0)
@@ -99,7 +104,7 @@ main(int argc, char **argv)
 
     }*/
 
-
+/*
     for(int i =1 ;i<=1000000;i++){
     	data = ( int *)rte_zmalloc("S", sizeof(int), 0);
     	*(int *)data = i+1;
@@ -116,7 +121,15 @@ main(int argc, char **argv)
     	}
     	rte_free(get(name,i));
     }
+ */
 
+    pstate = (states_t *)get(name,23);
+    if(pstate->tt)
+    	hashtable_set_hash_func(pstate->tt,NULL);
+    else
+    	return 0;
+    hashtable_get(pstate->tt,5,(void **)(&data));
+    printf("data fetched %d\n",*(int *)data);
 
     printf("all done\n");
 	return 0;

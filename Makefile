@@ -46,6 +46,8 @@ RTE_TARGET ?= x86_64-native-linuxapp-gcc
 include $(RTE_SDK)/mk/rte.vars.mk
 
 #DIRS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += lib
+DIRS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += bstr
+DIRS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += hashtable
 DIRS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += kvs_lib
 DIRS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += kvs_server
 DIRS-$(CONFIG_RTE_EXEC_ENV_LINUXAPP) += kvs_client

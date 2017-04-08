@@ -122,7 +122,7 @@ int kvs_key_cmp (const void *key1, const void *key2, size_t key_len) {
 	return 1;
 }
 
-void* get(char * name,int key) {
+void* get(char * name, int key) {
 	struct rte_hash *h = NULL;
 
 	if (name == NULL) {
@@ -135,7 +135,7 @@ void* get(char * name,int key) {
 }
 
 
-void* get_h(struct rte_hash *h,int key) {
+void* get_h(struct rte_hash *h, int key) {
 
 	void *data = NULL,*res=NULL;
 	int retval;
@@ -203,7 +203,7 @@ int set_h(struct rte_hash *h ,int key, void * value) {
 }
 
 
-int del(char * name,int key) {
+int del(char * name, int key) {
 
 	struct rte_hash *h = NULL;
 	if(name == NULL){
@@ -214,7 +214,7 @@ int del(char * name,int key) {
 }
 
 
-int del_h(struct rte_hash *h,int key) {
+int del_h(struct rte_hash *h, int key) {
 	int retval;
 	void * data = NULL;
     if((h == NULL )){
@@ -245,6 +245,7 @@ rte_myhash(const void *key, uint32_t length, uint32_t initval) {
 	if( length == 0 || initval == 0){
 		length = initval;
 	}
-	return *(const uint32_t *)key;
+	return *(const int32_t *)key;
+	//return DEFAULT_HASH_FUNC(key,length,initval);
 }
 
