@@ -123,7 +123,7 @@ main(int argc, char **argv)
     }
  */
 
-    pstate = (states_t *)get(name,23);
+    pstate = (states_t *)kvs_get(name,23);
     if(pstate->tt)
     	hashtable_set_hash_func(pstate->tt,NULL);
     else

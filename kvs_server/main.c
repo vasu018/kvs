@@ -77,7 +77,7 @@ main(int argc, char **argv)
     *data = 19;
     hashtable_insert(tt,(const hash_key_t)5,(void *)data);
     pstate->tt = tt;
-    set(name,23,(void *)pstate);
+    kvs_set(name,23,(void *)pstate);
     while(flag) {
 
     	sleep(1);

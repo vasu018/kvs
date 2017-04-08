@@ -122,7 +122,7 @@ int kvs_key_cmp (const void *key1, const void *key2, size_t key_len) {
 	return 1;
 }
 
-void* get(char * name, int key) {
+void* kvs_get(char * name, int key) {
 	struct rte_hash *h = NULL;
 
 	if (name == NULL) {
@@ -130,12 +130,12 @@ void* get(char * name, int key) {
 	}
 	h = rte_hash_find_existing(name);
 
-	return get_h( h,  key);
+	return kvs_get_h( h,  key);
 
 }
 
 
-void* get_h(struct rte_hash *h, int key) {
+void* kvs_get_h(struct rte_hash *h, int key) {
 
 	void *data = NULL,*res=NULL;
 	int retval;
@@ -164,18 +164,18 @@ void* get_h(struct rte_hash *h, int key) {
 
 
 
-int set(char *name,int key, void * value) {
+int kvs_set(char *name,int key, void * value) {
 	struct rte_hash *h = NULL;
 	if(name == NULL) {
 		return -1;
 	}
 	h = rte_hash_find_existing(name);
 
-	return set_h(h , key,  value);
+	return kvs_set_h(h , key,  value);
 
 }
 
-int set_h(struct rte_hash *h ,int key, void * value) {
+int kvs_set_h(struct rte_hash *h ,int key, void * value) {
 
 	struct kvs_hash_struct* p_value = NULL;int retval;
 
@@ -203,18 +203,18 @@ int set_h(struct rte_hash *h ,int key, void * value) {
 }
 
 
-int del(char * name, int key) {
+int kvs_del(char * name, int key) {
 
 	struct rte_hash *h = NULL;
 	if(name == NULL){
 		return -1;
 	}
 	h = rte_hash_find_existing(name);
-	return del_h(h, key);
+	return kvs_del_h(h, key);
 }
 
 
-int del_h(struct rte_hash *h, int key) {
+int kvs_del_h(struct rte_hash *h, int key) {
 	int retval;
 	void * data = NULL;
     if((h == NULL )){
