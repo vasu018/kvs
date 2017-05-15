@@ -33,4 +33,6 @@ int kvs_del(char * name,int key);
 
 int kvs_del_h(struct rte_hash *h,int key);
 
+int kvs_hash_iterate(char *name, int *next_key, void **next_data, uint32_t *next);
+
 #endif

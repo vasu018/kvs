@@ -162,6 +162,40 @@ void* kvs_get_h(struct rte_hash *h, int key) {
 
 }
 
+int
+kvs_hash_iterate(char *name, int *next_key, void **next_data, uint32_t *next)
+{
+    void *data = NULL,*res=NULL;
+    const void *key;
+    int retval;
+    struct rte_hash *h = NULL;
+
+    if (name == NULL) {
+            return -1;
+    }
+    h = rte_hash_find_existing(name);
+
+    if(h == NULL ) {
+    	printf("ERROR No HashTable named:%s\n", name);
+        return -1;
+    }
+
+    if((retval = rte_hash_iterate(h, &key, &data, next))<0){
+    	printf("ERROR iteration complete... retval:%d\n", retval);
+    	return -1;
+    }
+    if(pthread_mutex_lock(&((( struct kvs_hash_struct *)data)->lock))) {
+    	printf("ERROR cannot get a lock...  \n");
+    	return -1;
+    }
+    res = ((struct kvs_hash_struct *)(data))->data;
+    pthread_mutex_unlock(&((( struct kvs_hash_struct *)data)->lock));
+
+    *next_data = res;
+    *next_key  = *(const int*)key;
+
+    return retval;
+}
 
 
 int kvs_set(char *name,int key, void * value) {
