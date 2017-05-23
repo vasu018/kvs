@@ -292,7 +292,11 @@ int kvs_set_h(struct rte_hash *h ,void* key, void * value, uint32_t key_len) {
     rte_hash_update_hash_fun(h,rte_myhash);
     rte_hash_set_cmp_func(h,kvs_key_cmp);
     if((retval = rte_hash_lookup_data(h,(void *)key,(void *)&p_value ))<0){
-    	printf("found no key:%d \n", *(int *)key);
+    	if(rte_hash_len(h) == 8) {
+    		printf("found no key:%ld \n", *(long int *)key);
+    	}else{
+    		printf("found no key:%d \n", *(int *)key);
+    	}
     	p_value = ( struct kvs_hash_struct *)rte_zmalloc("KVS", sizeof(struct kvs_hash_struct), 0);
     	if(p_value == NULL) {
     		printf("ERROR malloc failed\n");
