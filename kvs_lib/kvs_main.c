@@ -50,8 +50,11 @@
 
 
 
+
 #include "kvs_main.h"
 
+
+#define DEFAULT_HASH_FUNC  rte_jhash
 
 
 int kvs_hash_init( char* name )
@@ -60,7 +63,7 @@ int kvs_hash_init( char* name )
 	struct rte_hash *h = NULL;
     struct rte_hash_parameters hash_params = {
             .entries = HASH_MAX_NUM_ENTRY, /* table load = 50% */
-            .key_len = 32, /*sizeof(uint32_t),*/ /* Store IPv4 dest IP address */
+            .key_len = 4, /*sizeof(uint32_t),*/ /* Store IPv4 dest IP address */
             .socket_id = rte_socket_id(),
             .hash_func_init_val = 0,
 			.name = name,
@@ -78,6 +81,32 @@ int kvs_hash_init( char* name )
     return 0;
 
 }
+
+int kvs_hash_init_64( char* name )
+{
+	//char name[RTE_HASH_NAMESIZE] = {0};
+	struct rte_hash *h = NULL;
+    struct rte_hash_parameters hash_params = {
+            .entries = HASH_MAX_NUM_ENTRY, /* table load = 50% */
+            .key_len = 8, /*sizeof(uint32_t),*/ /* Store IPv4 dest IP address */
+            .socket_id = rte_socket_id(),
+            .hash_func_init_val = 0,
+			.name = name,
+			.extra_flag = 0,
+			.hash_func = rte_myhash,
+    };
+
+    h = rte_hash_create(&hash_params);
+
+    if( h == NULL) {
+    	printf("Unable to create hashmap\n");
+    	return -1;
+    }
+    rte_hash_set_cmp_func(h,kvs_key_cmp);
+    return 0;
+
+}
+
 
 int kvs_hash_delete(char * name)
 {
@@ -115,11 +144,19 @@ int kvs_key_cmp (const void *key1, const void *key2, size_t key_len) {
 		return 1;
 	}
 	//printf("key1 = %d  key2 = %d\n",*((const int *)(key1)), *((const int *)(key2)));
+
+	for(unsigned int i =0;i<key_len;i++){
+		if(((const uint8_t *)key1)[i] != ((const uint8_t *)key2)[i]) {
+			return 1;
+		}
+
+	}
+/*
 	if ( *((const int *)(key1)) ==  *((const int *)(key2))){
 		//printf("found key\n");
 		return 0;
-	}
-	return 1;
+	}*/
+	return 0;
 }
 
 void* kvs_get(char * name, int key) {
@@ -130,30 +167,48 @@ void* kvs_get(char * name, int key) {
 	}
 	h = rte_hash_find_existing(name);
 
-	return kvs_get_h( h,  key);
+	return kvs_get_h( h,  &key, 4);
 
 }
 
 
-void* kvs_get_h(struct rte_hash *h, int key) {
+void* kvs_get_64(char * name, int64_t key) {
+	struct rte_hash *h = NULL;
+
+	if (name == NULL) {
+		return NULL;
+	}
+	h = rte_hash_find_existing(name);
+
+	return kvs_get_h( h,  &key, 8);
+
+}
+
+
+void* kvs_get_h(struct rte_hash *h, void *key, uint32_t key_len) {
 
 	void *data = NULL,*res=NULL;
 	int retval;
 
-    if(h == NULL ) {
-    	printf("ERROR key:%d h:%p\n", key, h);
+    if((h == NULL )||(key == NULL)) {
+    	printf("ERROR key:%p h:%p\n", key, h);
+        return NULL;
+    }
+
+    if(rte_hash_len(h) != key_len ) {
+    	printf("ERROR key_len mismatch key_len:%u\n", key_len);
         return NULL;
     }
 
     rte_hash_set_cmp_func(h,kvs_key_cmp);
 
     rte_hash_update_hash_fun(h,rte_myhash);
-    if((retval = rte_hash_lookup_data(h,(void *)&key,(void *)&data ))<0){
-    	printf("ERROR found no key:%d retval:%d\n", key, retval);
+    if((retval = rte_hash_lookup_data(h,(void *)key,(void *)&data ))<0){
+    	//printf("ERROR found no key:%d retval:%d\n", key, retval);
     	return NULL;
     }
     if(pthread_mutex_lock(&((( struct kvs_hash_struct *)data)->lock))) {
-    	printf("ERROR cannot get a lock :%d", key);
+    	//printf("ERROR cannot get a lock :%d", key);
     	return NULL;
     }
     res = ((struct kvs_hash_struct *)(data))->data;
@@ -205,32 +260,53 @@ int kvs_set(char *name,int key, void * value) {
 	}
 	h = rte_hash_find_existing(name);
 
-	return kvs_set_h(h , key,  value);
+	return kvs_set_h(h , &key,  value, 4);
 
 }
 
-int kvs_set_h(struct rte_hash *h ,int key, void * value) {
+
+int kvs_set_64(char *name,int64_t key, void * value) {
+	struct rte_hash *h = NULL;
+	if(name == NULL) {
+		return -1;
+	}
+	h = rte_hash_find_existing(name);
+
+	return kvs_set_h(h , &key,  value, 8);
+
+}
+
+
+int kvs_set_h(struct rte_hash *h ,void* key, void * value, uint32_t key_len) {
 
 	struct kvs_hash_struct* p_value = NULL;int retval;
 
     if((h == NULL )){
-    	printf("ERROR key:%d h:%p\n", key, h);
+    	printf("ERROR key:%p h:%p\n", key, h);
+        return -1;
+    }
+    if(rte_hash_len(h) != key_len ) {
+    	printf("ERROR key_len mismatch key_len:%u\n", key_len);
         return -1;
     }
     rte_hash_update_hash_fun(h,rte_myhash);
     rte_hash_set_cmp_func(h,kvs_key_cmp);
-    if((retval = rte_hash_lookup_data(h,(void *)&key,(void *)&p_value ))<0){
-    	printf("found no key:%d \n", key);
+    if((retval = rte_hash_lookup_data(h,(void *)key,(void *)&p_value ))<0){
+    	printf("found no key:%d \n", *(int *)key);
     	p_value = ( struct kvs_hash_struct *)rte_zmalloc("KVS", sizeof(struct kvs_hash_struct), 0);
+    	if(p_value == NULL) {
+    		printf("ERROR malloc failed\n");
+    		return -1;
+    	}
     	pthread_mutex_init(&(p_value->lock), NULL);
 
     }
     if(pthread_mutex_lock(&(p_value->lock))) {
-    	printf("ERROR cannot get a lock :%d", key);
+    	printf("ERROR cannot get a lock\n");
     	return -1;
     }
 	p_value->data = value;
-    retval= rte_hash_add_key_data(h,(void *)&key,(void *)p_value);
+    retval= rte_hash_add_key_data(h,(void *)key,(void *)p_value);
     pthread_mutex_unlock(&(p_value->lock));
     return retval;
 
@@ -244,42 +320,53 @@ int kvs_del(char * name, int key) {
 		return -1;
 	}
 	h = rte_hash_find_existing(name);
-	return kvs_del_h(h, key);
+	return kvs_del_h(h, &key, 4);
+}
+
+int kvs_del_64(char *name, int64_t key) {
+
+	struct rte_hash *h = NULL;
+	if(name == NULL){
+		return -1;
+	}
+	h = rte_hash_find_existing(name);
+	return kvs_del_h(h, &key, 8);
 }
 
 
-int kvs_del_h(struct rte_hash *h, int key) {
+int kvs_del_h(struct rte_hash *h, void *key, uint32_t key_len) {
 	int retval;
 	void * data = NULL;
     if((h == NULL )){
-    	printf("ERROR key:%d h:%p\n", key, h);
+    	printf("ERROR key:%p h:%p\n", key, h);
+        return -1;
+    }
+    if(rte_hash_len(h) != key_len ) {
+    	printf("ERROR key_len mismatch key_len:%u\n", key_len);
         return -1;
     }
     rte_hash_update_hash_fun(h,rte_myhash);
     rte_hash_set_cmp_func(h,kvs_key_cmp);
     //TODO: Memory leak need to free the struct kvs_hash_struct
-    if((retval = rte_hash_lookup_data(h,(void *)&key,(void *)&data ))<0){
-    	printf("ERROR found no key:%d retval:%d\n", key, retval);
+    if((retval = rte_hash_lookup_data(h,(void *)key,(void *)&data ))<0){
+    	//printf("ERROR found no key:%d retval:%d\n", key, retval);
     	return -1;
     }
 
     if(data) {
 
     	while (pthread_mutex_destroy(&((( struct kvs_hash_struct *)data)->lock)) != EBUSY){
-    	rte_free(( struct kvs_hash_struct *)data);
+    		rte_free(( struct kvs_hash_struct *)data);
+    		break;
     	}
     }
-    rte_hash_del_key (h, (const void *)&key);
+    rte_hash_del_key (h, (const void *)key);
     return 0;
 }
 
 uint32_t
 rte_myhash(const void *key, uint32_t length, uint32_t initval) {
 
-	if( length == 0 || initval == 0){
-		length = initval;
-	}
-	return *(const int32_t *)key;
-	//return DEFAULT_HASH_FUNC(key,length,initval);
+	return DEFAULT_HASH_FUNC(key,length,initval);
 }
 
