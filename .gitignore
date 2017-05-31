@@ -10,5 +10,7 @@ kvs_lib/build/
 kvs_lib/kvs_lib/
 kvs_server/build/
 kvs_server/kvs_server/
+kvs_test_server/build/
+kvs_test_server/kvs_test_server/
 kvs_client/build/
 kvs_client/kvs_client/
