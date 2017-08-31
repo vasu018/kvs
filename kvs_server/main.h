@@ -16,8 +16,28 @@
 #include <rte_jhash.h>
 #include <rte_malloc.h>
 
+
+#include <stdlib.h>
+#include <errno.h>
+#include <unistd.h>   //close
+#include <arpa/inet.h>    //close
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/time.h> //FD_SET, FD_ISSET, FD_ZERO macros
+#include <uv.h>
+
 #include "bstrlib.h"
 #include "hashtable.h"
 #include "kvs_main.h"
-void sig_handler(int signo);
+
+
+void alloc_buffer(uv_handle_t *handle, size_t suggested_size, struct uv_buf_t *buf);
+void echo_write(uv_write_t *req, int status) ;
+void echo_read(uv_stream_t *client, ssize_t nread, const uv_buf_t *buf);
+void on_new_connection(uv_stream_t *server, int status);
+
+
+
+
 

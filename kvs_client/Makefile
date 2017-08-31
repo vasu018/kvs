@@ -61,6 +61,7 @@ CFLAGS += -I$(SRCDIR)/../ -I$(SRCDIR)/../kvs_lib/ -I$(SRCDIR)/../lib/ -I$(SRCDIR
 LDFLAGS += $(SRCDIR)/../kvs_lib/kvs_lib/$(RTE_TARGET)/libkvs.a
 LDFLAGS += $(SRCDIR)/../hashtable/hashtable/$(RTE_TARGET)/libhashtab.a
 LDFLAGS += $(SRCDIR)/../bstr/bstr/$(RTE_TARGET)/libbstr.a
+LDFLAGS +=  /usr/local/lib/libuv.a
 
 
 include $(RTE_SDK)/mk/rte.extapp.mk

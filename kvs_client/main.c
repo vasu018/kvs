@@ -34,7 +34,22 @@
 #include "main.h"
 #include <signal.h>
 #include <unistd.h>
+
+#include <uv.h>
+
+char name[RTE_HASH_NAMESIZE] = {HASH_NAME};
+#define PAGE_SIZE 512
+
 int flag = 1;
+
+static void *s_mem(char * data, int size ){
+
+	void * ret = rte_zmalloc("KVS", size, 0);
+	if(!ret)
+		return NULL;
+	memcpy(ret, data, size);
+	return ret;
+}
 
 void sig_handler(int signo)
 {
@@ -43,48 +58,105 @@ void sig_handler(int signo)
     flag = 0;
   }
 }
+static void on_close(uv_handle_t* handle);
+static void on_connect(uv_connect_t* req, int status);
+static void on_write(uv_write_t* req, int status);
+void on_read(uv_stream_t *tcp, ssize_t nread, const uv_buf_t *buf);
+int pull (char *hostname, uint32_t key);
 
 
-typedef struct states{
-	hash_table_t *tt;
-
-}states_t;
-/*
-void menu( void )
-{
-    int opt = 0,key,value;char name[] = {HASH_NAME};
-    printf("\nEnter a value\n1. get(key) \n2. set(key,value) \n3. del(key) \n4.exit\n:");
-    scanf("%d",&opt);
-    switch(opt) {
-    case 1:{
-            printf("\nEnter key\nGET:");
-            scanf("%d",&key);
-            printf("result:%p\n",get(name,key));
-            break;
-            }
-    case 2:{
-            printf("\nEnter key and value\nSET:");
-            scanf("%d %d",&key,&value);
-            printf("result:%d\n",set(name,key,(void *)&value));
-            break;
-            }
-    case 3:{
-            printf("\nEnter key\nDEL:");
-            scanf("%d",&key);
-            printf("result:%d\n",del(name,key));
-            break;
-            }
- 
-    default:flag = 0;
-    }
+static void alloc_buffer(uv_handle_t *handle, size_t suggested_size, struct uv_buf_t *buf) {
+	if (!handle)
+		return ;
+  *buf = uv_buf_init((char*) calloc(suggested_size,1), suggested_size);
 }
 
-*/
+
+void on_close(uv_handle_t* handle)
+{
+	if(handle)
+		printf(" value of handle->data %p.",handle->data);
+}
+
+void on_write(uv_write_t* req, int status)
+{
+  if (status) {
+    fprintf(stderr, "uv_write error: %s\n", uv_strerror(status));
+	return;
+  }
+  if (req)
+	printf("wrote.\n");
+	//uv_close((uv_handle_t*)req->handle, on_close);
+}
+void on_read(uv_stream_t *tcp, ssize_t nread, const uv_buf_t *buf)
+{
+	if(nread >= 0) {
+		//printf("read: %s\n", tcp->data);
+		char *data = buf->base;
+		uint32_t key = *(uint32_t *)data;
+		data += sizeof(uint32_t);
+		printf("read: key:%d data:%s\n",key, data);
+		kvs_set(name, key, s_mem(data,strlen(data)));
+	}
+	else {
+		//we got an EOF
+    uv_close((uv_handle_t*)tcp, on_close);
+	}
+
+	//cargo-culted
+	free(buf->base);
+}
+
+void on_connect(uv_connect_t* connection, int status)
+{
+	if (status) {
+	    fprintf(stderr, "on_connect error: %s\n", uv_strerror(status));
+			return;
+	}
+	printf("connected with data %d.\n", *(int *)(connection->data));
+
+	uv_stream_t* stream = connection->handle;
+
+	//char req_str[] = "a\n";
+	void * req_str = connection->data;
+
+	uv_buf_t buffer = uv_buf_init(req_str,sizeof(uint32_t));
+
+	uv_write_t request;
+
+	uv_write(&request, stream, &buffer, 1, on_write);
+	uv_read_start(stream, alloc_buffer, on_read);
+}
+
+
+
+int pull (char *hostname, uint32_t key){
+	uv_tcp_t socket;
+	uv_loop_t *loop = uv_default_loop();
+	if (!loop) {
+		return -1;
+	}
+	uv_tcp_init(loop, &socket);
+	uv_tcp_keepalive(&socket, 1, 60);
+	printf("key:%d\n",key);
+	loop->data = malloc(sizeof(uint32_t));
+	*(int *)loop->data = key;
+	struct sockaddr_in dest;
+	uv_ip4_addr(hostname, 7000, &dest);
+
+	uv_connect_t connect;
+	connect.data = loop->data;
+	uv_tcp_connect(&connect, &socket, (const struct sockaddr *)& dest, on_connect);
+
+	uv_run(loop, UV_RUN_DEFAULT);
+
+	return 0;
+}
 
 int
 main(int argc, char **argv)
 {
-	int ret;char name[] = {HASH_NAME};states_t *pstate =NULL;int * data = NULL;
+	int ret;//char name[] = {HASH_NAME};
 	//int32_t iter = 0;
 	//void * key =NULL;
 
@@ -93,44 +165,14 @@ main(int argc, char **argv)
 	if (ret < 0)
 		rte_panic("Cannot init EAL\n");
 
-
     if (signal(SIGINT, sig_handler) == SIG_ERR) {
     	printf("\ncan't catch SIGINT\n");
     	return 0;
-    }/*
-    while(flag) {
-        menu();
-    	//sleep(1);
-
-    }*/
-
-/*
-    for(int i =1 ;i<=1000000;i++){
-    	data = ( int *)rte_zmalloc("S", sizeof(int), 0);
-    	*(int *)data = i+1;
-    	if(set(name,i,(void *)data)) {
-    		printf("set failed %d\n",i);
-    		break;
-    	}
     }
-    for(int i =1 ;i<=1000000;i++){
-
-    	if((*(int *)get(name,i)) !=(i+1)) {
-    		printf("get failed %d\n",i);
-    		break;
-    	}
-    	rte_free(get(name,i));
-    }
- */
-
-    pstate = (states_t *)kvs_get(name,23);
-    if(pstate->tt)
-    	hashtable_set_hash_func(pstate->tt,NULL);
-    else
-    	return 0;
-    hashtable_get(pstate->tt,5,(void **)(&data));
-    printf("data fetched %d\n",*(int *)data);
-
+    char host[] = "0.0.0.0";
+    pull( host, 'a');
     printf("all done\n");
+
+	rte_eal_mp_wait_lcore();
 	return 0;
 }
