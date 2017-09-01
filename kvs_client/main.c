@@ -96,7 +96,10 @@ void on_read(uv_stream_t *tcp, ssize_t nread, const uv_buf_t *buf)
 		uint32_t key = *(uint32_t *)data;
 		data += sizeof(uint32_t);
 		printf("read: key:%d data:%s\n",key, data);
-		kvs_set(name, key, s_mem(data,strlen(data)));
+		if(strcmp(data,"-1"))
+			kvs_set(name, key, s_mem(data,strlen(data)));
+		else
+			fprintf(stderr, "got -1 no entry\n");
 	}
 	else {
 		//we got an EOF
