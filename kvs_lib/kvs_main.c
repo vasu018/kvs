@@ -104,8 +104,8 @@ int kvs_hash_init_64( char* name )
     	return -1;
     }
     rte_hash_set_cmp_func(h,kvs_key_cmp);
+    rte_hash_init_lock(h);
     return 0;
-
 }
 
 
@@ -314,13 +314,17 @@ int kvs_set_h(struct rte_hash *h ,void* key, void * value, uint32_t key_len) {
     	pthread_mutex_init(&(p_value->lock), NULL);
 
     }
+#if 0
     if(pthread_mutex_lock(&(p_value->lock))) {
     	printf("ERROR cannot get a lock\n");
     	return -1;
     }
+#endif
 	p_value->data = value;
     retval= rte_hash_add_key_data(h,(void *)key,(void *)p_value);
+#if 0
     pthread_mutex_unlock(&(p_value->lock));
+#endif
     rte_hash_unlock(h);
     return retval;
 
