@@ -14,5 +14,4 @@ More info coming soon
 
 ### Who do I talk to? ###
 
-* Amos J Paul <amosjpaul@gmail.com>
 * Vasudevan Nagendra vasu.018@gmail.com
